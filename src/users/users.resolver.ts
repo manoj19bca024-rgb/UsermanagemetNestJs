@@ -4,6 +4,9 @@ import { join } from 'path';
 import { UsersService } from './users.service';
 import { UserModel } from './dto/user.model';
 import { CreateUserDto } from '../dto/create-user.dto';
+import { CreateUserInput } from './dto/create-user.input';
+import { DeleteUserDto } from '../dto/delete-user.dto';
+import { UpdateUserInput } from './dto/update-user.input';
 import { UploadResponse } from './dto/upload-response.model';
 import { UploadScalar } from '../graphql/scalars/upload.scalar';
 
@@ -27,13 +30,9 @@ export class UsersResolver {
 
   @Mutation(() => UserModel)
   async createUser(
-    @Args('name') name: string,
-    @Args('email') email: string,
-    @Args('password') password: string,
-    @Args({ name: 'age', type: () => Int }) age: number,
-    @Args({ name: 'profilePhoto', type: () => UploadScalar, nullable: true })
-    profilePhoto?: any,
+    @Args({ name: 'input', type: () => CreateUserInput }) createUserInput: CreateUserInput,
   ) {
+    const { name, email, password, age, profilePhoto } = createUserInput;
     const dto: CreateUserDto = { name, email, password, age } as CreateUserDto;
 
     if (profilePhoto) {
@@ -47,14 +46,9 @@ export class UsersResolver {
 
   @Mutation(()=> UserModel)
   async updateUser(
-    @Args('id') id: string,
-    @Args('name',{nullable: true}) name?:string,
-    @Args('email',{nullable: true}) email?:string,
-    @Args('password',{nullable: true}) password?:string,
-    @Args({ name: 'age', type: () => Int, nullable:true }) age?:number,
-    @Args({ name: 'profilePhoto', type: () => UploadScalar, nullable: true })
-    profilePhoto?: any,
+    @Args({ name: 'input', type: () => UpdateUserInput }) updateUserInput: UpdateUserInput,
   ){
+    const { id, name, email, password, age, profilePhoto } = updateUserInput;
     const updateData: any = {};
     if(name) updateData.name = name;
     if(email) updateData.email = email;
@@ -68,11 +62,15 @@ export class UsersResolver {
     return result.data;
   }
 
-    @Mutation(() => Boolean)
-    async deleteUser(@Args('id') id: string) {
-      await this.usersService.remove(id);
-      return true;
-    }
+  @Mutation(() => Boolean)
+  async deleteUser(
+    @Args({ name: 'input', type: () => DeleteUserDto }) deleteUserDto: DeleteUserDto,
+  ) {
+    await this.usersService.remove(deleteUserDto.id);
+    return true;
+  }
+
+  
 
 
   @Mutation(() => UploadResponse)

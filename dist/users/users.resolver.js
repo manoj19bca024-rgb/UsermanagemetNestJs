@@ -16,6 +16,9 @@ exports.UsersResolver = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const users_service_1 = require("./users.service");
 const user_model_1 = require("./dto/user.model");
+const create_user_input_1 = require("./dto/create-user.input");
+const delete_user_dto_1 = require("../dto/delete-user.dto");
+const update_user_input_1 = require("./dto/update-user.input");
 const upload_response_model_1 = require("./dto/upload-response.model");
 const upload_scalar_1 = require("../graphql/scalars/upload.scalar");
 let UsersResolver = class UsersResolver {
@@ -31,7 +34,8 @@ let UsersResolver = class UsersResolver {
         const result = await this.usersService.findOne(id);
         return result.data;
     }
-    async createUser(name, email, password, age, profilePhoto) {
+    async createUser(createUserInput) {
+        const { name, email, password, age, profilePhoto } = createUserInput;
         const dto = { name, email, password, age };
         if (profilePhoto) {
             const upload = await (typeof profilePhoto.then === 'function' ? profilePhoto : profilePhoto);
@@ -40,7 +44,8 @@ let UsersResolver = class UsersResolver {
         const result = await this.usersService.create(dto);
         return result.data;
     }
-    async updateUser(id, name, email, password, age, profilePhoto) {
+    async updateUser(updateUserInput) {
+        const { id, name, email, password, age, profilePhoto } = updateUserInput;
         const updateData = {};
         if (name)
             updateData.name = name;
@@ -57,8 +62,8 @@ let UsersResolver = class UsersResolver {
         const result = await this.usersService.update(id, updateData);
         return result.data;
     }
-    async deleteUser(id) {
-        await this.usersService.remove(id);
+    async deleteUser(deleteUserDto) {
+        await this.usersService.remove(deleteUserDto.id);
         return true;
     }
     async uploadImage(file) {
@@ -83,32 +88,23 @@ __decorate([
 ], UsersResolver.prototype, "user", null);
 __decorate([
     (0, graphql_1.Mutation)(() => user_model_1.UserModel),
-    __param(0, (0, graphql_1.Args)('name')),
-    __param(1, (0, graphql_1.Args)('email')),
-    __param(2, (0, graphql_1.Args)('password')),
-    __param(3, (0, graphql_1.Args)({ name: 'age', type: () => graphql_1.Int })),
-    __param(4, (0, graphql_1.Args)({ name: 'profilePhoto', type: () => upload_scalar_1.UploadScalar, nullable: true })),
+    __param(0, (0, graphql_1.Args)({ name: 'input', type: () => create_user_input_1.CreateUserInput })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, Number, Object]),
+    __metadata("design:paramtypes", [create_user_input_1.CreateUserInput]),
     __metadata("design:returntype", Promise)
 ], UsersResolver.prototype, "createUser", null);
 __decorate([
     (0, graphql_1.Mutation)(() => user_model_1.UserModel),
-    __param(0, (0, graphql_1.Args)('id')),
-    __param(1, (0, graphql_1.Args)('name', { nullable: true })),
-    __param(2, (0, graphql_1.Args)('email', { nullable: true })),
-    __param(3, (0, graphql_1.Args)('password', { nullable: true })),
-    __param(4, (0, graphql_1.Args)({ name: 'age', type: () => graphql_1.Int, nullable: true })),
-    __param(5, (0, graphql_1.Args)({ name: 'profilePhoto', type: () => upload_scalar_1.UploadScalar, nullable: true })),
+    __param(0, (0, graphql_1.Args)({ name: 'input', type: () => update_user_input_1.UpdateUserInput })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, Number, Object]),
+    __metadata("design:paramtypes", [update_user_input_1.UpdateUserInput]),
     __metadata("design:returntype", Promise)
 ], UsersResolver.prototype, "updateUser", null);
 __decorate([
     (0, graphql_1.Mutation)(() => Boolean),
-    __param(0, (0, graphql_1.Args)('id')),
+    __param(0, (0, graphql_1.Args)({ name: 'input', type: () => delete_user_dto_1.DeleteUserDto })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [delete_user_dto_1.DeleteUserDto]),
     __metadata("design:returntype", Promise)
 ], UsersResolver.prototype, "deleteUser", null);
 __decorate([
