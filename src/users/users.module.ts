@@ -3,6 +3,7 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import {MongooseModule} from '@nestjs/mongoose';
 import { UserSchema, User } from './schemas/user.schema';
+import { UsersResolver } from './users.resolver';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { UserSchema, User } from './schemas/user.schema';
     }])
   ],
   controllers: [UsersController],
-  providers: [UsersService]
+  providers: [UsersService, UsersResolver]
 })
 
 
