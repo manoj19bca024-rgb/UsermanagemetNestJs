@@ -14,8 +14,6 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersResolver = void 0;
 const graphql_1 = require("@nestjs/graphql");
-const fs_1 = require("fs");
-const path_1 = require("path");
 const users_service_1 = require("./users.service");
 const user_model_1 = require("./dto/user.model");
 const upload_response_model_1 = require("./dto/upload-response.model");
@@ -37,30 +35,36 @@ let UsersResolver = class UsersResolver {
         const dto = { name, email, password, age };
         if (profilePhoto) {
             const upload = await (typeof profilePhoto.then === 'function' ? profilePhoto : profilePhoto);
-            dto.profilePhoto = await this.saveFile(upload);
+            dto.profilePhoto = await this.usersService.saveFile(upload);
         }
         const result = await this.usersService.create(dto);
         return result.data;
     }
+    async updateUser(id, name, email, password, age, profilePhoto) {
+        const updateData = {};
+        if (name)
+            updateData.name = name;
+        if (email)
+            updateData.email = email;
+        if (password)
+            updateData.password = password;
+        if (age)
+            updateData.age = age;
+        if (profilePhoto) {
+            const upload = await (typeof profilePhoto.then === 'function' ? profilePhoto : profilePhoto);
+            updateData.profilePhoto = await this.usersService.saveFile(upload);
+        }
+        const result = await this.usersService.update(id, updateData);
+        return result.data;
+    }
+    async deleteUser(id) {
+        await this.usersService.remove(id);
+        return true;
+    }
     async uploadImage(file) {
         const upload = await (typeof file.then === 'function' ? file : file);
-        const url = await this.saveFile(upload);
+        const url = await this.usersService.saveFile(upload);
         return { url };
-    }
-    async saveFile(file) {
-        const uploadDir = (0, path_1.join)(process.cwd(), 'uploads', 'profiles');
-        if (!(0, fs_1.existsSync)(uploadDir)) {
-            (0, fs_1.mkdirSync)(uploadDir, { recursive: true });
-        }
-        const filename = `${Date.now()}-${file.filename}`;
-        const filePath = (0, path_1.join)(uploadDir, filename);
-        await new Promise((resolve, reject) => {
-            file.createReadStream()
-                .pipe((0, fs_1.createWriteStream)(filePath))
-                .on('finish', resolve)
-                .on('error', reject);
-        });
-        return filePath;
     }
 };
 exports.UsersResolver = UsersResolver;
@@ -88,6 +92,25 @@ __decorate([
     __metadata("design:paramtypes", [String, String, String, Number, Object]),
     __metadata("design:returntype", Promise)
 ], UsersResolver.prototype, "createUser", null);
+__decorate([
+    (0, graphql_1.Mutation)(() => user_model_1.UserModel),
+    __param(0, (0, graphql_1.Args)('id')),
+    __param(1, (0, graphql_1.Args)('name', { nullable: true })),
+    __param(2, (0, graphql_1.Args)('email', { nullable: true })),
+    __param(3, (0, graphql_1.Args)('password', { nullable: true })),
+    __param(4, (0, graphql_1.Args)({ name: 'age', type: () => graphql_1.Int, nullable: true })),
+    __param(5, (0, graphql_1.Args)({ name: 'profilePhoto', type: () => upload_scalar_1.UploadScalar, nullable: true })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String, Number, Object]),
+    __metadata("design:returntype", Promise)
+], UsersResolver.prototype, "updateUser", null);
+__decorate([
+    (0, graphql_1.Mutation)(() => Boolean),
+    __param(0, (0, graphql_1.Args)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], UsersResolver.prototype, "deleteUser", null);
 __decorate([
     (0, graphql_1.Mutation)(() => upload_response_model_1.UploadResponse),
     __param(0, (0, graphql_1.Args)({ name: 'file', type: () => upload_scalar_1.UploadScalar })),

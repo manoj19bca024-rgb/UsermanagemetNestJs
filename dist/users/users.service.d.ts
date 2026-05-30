@@ -1,6 +1,12 @@
 import { User } from './schemas/user.schema';
 import { Model } from 'mongoose';
 import { CreateUserDto } from "../dto/create-user.dto";
+interface FileUpload {
+    filename: string;
+    mimetype: string;
+    encoding: string;
+    createReadStream: () => NodeJS.ReadableStream;
+}
 export declare class UsersService {
     private userModel;
     constructor(userModel: Model<User>);
@@ -54,4 +60,6 @@ export declare class UsersService {
             id: string;
         };
     }>;
+    saveFile(file: FileUpload): Promise<string>;
 }
+export {};

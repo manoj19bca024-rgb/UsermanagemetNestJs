@@ -3,7 +3,15 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
 import { Model } from 'mongoose';
 import { CreateUserDto } from 'src/dto/create-user.dto';
+import { createWriteStream, existsSync, mkdirSync } from 'fs';
+import { join } from 'path/win32';
 
+interface FileUpload {
+  filename: string;
+  mimetype: string;
+  encoding: string;
+  createReadStream: () => NodeJS.ReadableStream;
+}
 
 @Injectable()
 export class UsersService {
@@ -108,6 +116,25 @@ export class UsersService {
         } catch (err) {
             throw new InternalServerErrorException('Failed to delete user');
         }
+    }
+
+ async saveFile(file: FileUpload): Promise<string> {
+
+    const uploadDir = join(process.cwd(), 'uploads', 'profiles');
+    if (!existsSync(uploadDir)) {
+      mkdirSync(uploadDir, { recursive: true });
+    }
+    const filename = `${Date.now()}-${file.filename}`;
+    const filePath = join(uploadDir, filename);
+
+    await new Promise<void>((resolve, reject) => {
+      file.createReadStream()
+        .pipe(createWriteStream(filePath))
+        .on('finish', resolve)
+        .on('error', reject);
+    });
+
+    return filePath;
     }
    
 

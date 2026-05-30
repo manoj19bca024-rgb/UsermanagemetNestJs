@@ -9,6 +9,8 @@ scalar DateTime
 
 type Mutation {
   createUser(age: Int!, email: String!, name: String!, password: String!, profilePhoto: Upload): UserModel!
+  deleteUser(id: String!): Boolean!
+  updateUser(age: Int, email: String, id: String!, name: String, password: String, profilePhoto: Upload): UserModel!
   uploadImage(file: Upload!): UploadResponse!
 }
 

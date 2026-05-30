@@ -17,6 +17,8 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const user_schema_1 = require("./schemas/user.schema");
 const mongoose_2 = require("mongoose");
+const fs_1 = require("fs");
+const win32_1 = require("path/win32");
 let UsersService = class UsersService {
     userModel;
     constructor(userModel) {
@@ -114,6 +116,21 @@ let UsersService = class UsersService {
         catch (err) {
             throw new common_1.InternalServerErrorException('Failed to delete user');
         }
+    }
+    async saveFile(file) {
+        const uploadDir = (0, win32_1.join)(process.cwd(), 'uploads', 'profiles');
+        if (!(0, fs_1.existsSync)(uploadDir)) {
+            (0, fs_1.mkdirSync)(uploadDir, { recursive: true });
+        }
+        const filename = `${Date.now()}-${file.filename}`;
+        const filePath = (0, win32_1.join)(uploadDir, filename);
+        await new Promise((resolve, reject) => {
+            file.createReadStream()
+                .pipe((0, fs_1.createWriteStream)(filePath))
+                .on('finish', resolve)
+                .on('error', reject);
+        });
+        return filePath;
     }
 };
 exports.UsersService = UsersService;

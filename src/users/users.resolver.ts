@@ -7,12 +7,7 @@ import { CreateUserDto } from '../dto/create-user.dto';
 import { UploadResponse } from './dto/upload-response.model';
 import { UploadScalar } from '../graphql/scalars/upload.scalar';
 
-interface FileUpload {
-  filename: string;
-  mimetype: string;
-  encoding: string;
-  createReadStream: () => NodeJS.ReadableStream;
-}
+
 
 @Resolver(() => UserModel)
 export class UsersResolver {
@@ -43,12 +38,42 @@ export class UsersResolver {
 
     if (profilePhoto) {
       const upload = await (typeof profilePhoto.then === 'function' ? profilePhoto : profilePhoto);
-      dto.profilePhoto = await this.saveFile(upload);
+      dto.profilePhoto = await this.usersService.saveFile(upload);
     }
 
     const result = await this.usersService.create(dto);
     return result.data;
   }
+
+  @Mutation(()=> UserModel)
+  async updateUser(
+    @Args('id') id: string,
+    @Args('name',{nullable: true}) name?:string,
+    @Args('email',{nullable: true}) email?:string,
+    @Args('password',{nullable: true}) password?:string,
+    @Args({ name: 'age', type: () => Int, nullable:true }) age?:number,
+    @Args({ name: 'profilePhoto', type: () => UploadScalar, nullable: true })
+    profilePhoto?: any,
+  ){
+    const updateData: any = {};
+    if(name) updateData.name = name;
+    if(email) updateData.email = email;
+    if(password) updateData.password = password;
+    if(age) updateData.age = age;
+    if (profilePhoto) {
+      const upload = await (typeof profilePhoto.then === 'function' ? profilePhoto : profilePhoto);
+      updateData.profilePhoto = await this.usersService.saveFile(upload);
+    }
+    const result = await this.usersService.update(id, updateData);
+    return result.data;
+  }
+
+    @Mutation(() => Boolean)
+    async deleteUser(@Args('id') id: string) {
+      await this.usersService.remove(id);
+      return true;
+    }
+
 
   @Mutation(() => UploadResponse)
   async uploadImage(
@@ -56,27 +81,9 @@ export class UsersResolver {
     file: any,
   ) {
     const upload = await (typeof file.then === 'function' ? file : file);
-    const url = await this.saveFile(upload);
+    const url = await this.usersService.saveFile(upload);
     return { url };
   }
 
-  private async saveFile(file: FileUpload): Promise<string> {
-    const uploadDir = join(process.cwd(), 'uploads', 'profiles');
-
-    if (!existsSync(uploadDir)) {
-      mkdirSync(uploadDir, { recursive: true });
-    }
-
-    const filename = `${Date.now()}-${file.filename}`;
-    const filePath = join(uploadDir, filename);
-
-    await new Promise<void>((resolve, reject) => {
-      file.createReadStream()
-        .pipe(createWriteStream(filePath))
-        .on('finish', resolve)
-        .on('error', reject);
-    });
-
-    return filePath;
-  }
+  
 }

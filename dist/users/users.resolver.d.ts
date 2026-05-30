@@ -23,8 +23,15 @@ export declare class UsersResolver {
     } & {
         id: string;
     }>;
+    updateUser(id: string, name?: string, email?: string, password?: string, age?: number, profilePhoto?: any): Promise<import("mongoose").Document<unknown, {}, import("./schemas/user.schema").User, {}, import("mongoose").DefaultSchemaOptions> & import("./schemas/user.schema").User & {
+        _id: import("mongoose").Types.ObjectId;
+    } & {
+        __v: number;
+    } & {
+        id: string;
+    }>;
+    deleteUser(id: string): Promise<boolean>;
     uploadImage(file: any): Promise<{
         url: string;
     }>;
-    private saveFile;
 }
