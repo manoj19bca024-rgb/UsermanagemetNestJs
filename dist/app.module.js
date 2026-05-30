@@ -14,6 +14,7 @@ const mongoose_1 = require("@nestjs/mongoose");
 const users_module_1 = require("./users/users.module");
 const graphql_1 = require("@nestjs/graphql");
 const apollo_1 = require("@nestjs/apollo");
+const upload_scalar_1 = require("./graphql/scalars/upload.scalar");
 const mongoUri = process.env.MONGO_URI;
 if (!mongoUri) {
     throw new Error('Missing required environment variable: MONGO_URI');
@@ -35,7 +36,7 @@ exports.AppModule = AppModule = __decorate([
             users_module_1.UsersModule,
         ],
         controllers: [app_controller_1.AppController],
-        providers: [app_service_1.AppService],
+        providers: [app_service_1.AppService, upload_scalar_1.UploadScalar],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

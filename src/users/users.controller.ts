@@ -5,11 +5,11 @@ import { extname } from 'path';
 import { UsersService } from './users.service';
 import { CreateUserDto} from '../dto/create-user.dto';
 import { UpdateUserDto} from '../dto/update-user.dto';
+import * as fs from 'fs';
 
 
 @Controller('users')
 export class UsersController {
-
     constructor(private usersService: UsersService) {}
 
     @Post()
@@ -43,8 +43,17 @@ export class UsersController {
     }
 
     @Put(':id')
-    async update(@Param('id') id:string, @Body() data:UpdateUserDto){
-        return this.usersService.update(id,data)
+    async update(@Param('id') id: string, @Body() data: UpdateUserDto) {
+        if (data.profilePhoto) {
+            const result = await this.usersService.findOne(id);
+            const user = result?.data;
+
+            if (user?.profilePhoto && fs.existsSync(user.profilePhoto)) {
+                fs.unlinkSync(user.profilePhoto);
+            }
+        }
+
+        return this.usersService.update(id, data);
     }
 
     @Delete(':id')

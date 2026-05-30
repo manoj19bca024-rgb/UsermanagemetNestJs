@@ -14,8 +14,12 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersResolver = void 0;
 const graphql_1 = require("@nestjs/graphql");
+const fs_1 = require("fs");
+const path_1 = require("path");
 const users_service_1 = require("./users.service");
 const user_model_1 = require("./dto/user.model");
+const upload_response_model_1 = require("./dto/upload-response.model");
+const upload_scalar_1 = require("../graphql/scalars/upload.scalar");
 let UsersResolver = class UsersResolver {
     usersService;
     constructor(usersService) {
@@ -29,10 +33,34 @@ let UsersResolver = class UsersResolver {
         const result = await this.usersService.findOne(id);
         return result.data;
     }
-    async createUser(name, email, password, age) {
+    async createUser(name, email, password, age, profilePhoto) {
         const dto = { name, email, password, age };
+        if (profilePhoto) {
+            const upload = await (typeof profilePhoto.then === 'function' ? profilePhoto : profilePhoto);
+            dto.profilePhoto = await this.saveFile(upload);
+        }
         const result = await this.usersService.create(dto);
         return result.data;
+    }
+    async uploadImage(file) {
+        const upload = await (typeof file.then === 'function' ? file : file);
+        const url = await this.saveFile(upload);
+        return { url };
+    }
+    async saveFile(file) {
+        const uploadDir = (0, path_1.join)(process.cwd(), 'uploads', 'profiles');
+        if (!(0, fs_1.existsSync)(uploadDir)) {
+            (0, fs_1.mkdirSync)(uploadDir, { recursive: true });
+        }
+        const filename = `${Date.now()}-${file.filename}`;
+        const filePath = (0, path_1.join)(uploadDir, filename);
+        await new Promise((resolve, reject) => {
+            file.createReadStream()
+                .pipe((0, fs_1.createWriteStream)(filePath))
+                .on('finish', resolve)
+                .on('error', reject);
+        });
+        return filePath;
     }
 };
 exports.UsersResolver = UsersResolver;
@@ -54,11 +82,19 @@ __decorate([
     __param(0, (0, graphql_1.Args)('name')),
     __param(1, (0, graphql_1.Args)('email')),
     __param(2, (0, graphql_1.Args)('password')),
-    __param(3, (0, graphql_1.Args)('age')),
+    __param(3, (0, graphql_1.Args)({ name: 'age', type: () => graphql_1.Int })),
+    __param(4, (0, graphql_1.Args)({ name: 'profilePhoto', type: () => upload_scalar_1.UploadScalar, nullable: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, Number]),
+    __metadata("design:paramtypes", [String, String, String, Number, Object]),
     __metadata("design:returntype", Promise)
 ], UsersResolver.prototype, "createUser", null);
+__decorate([
+    (0, graphql_1.Mutation)(() => upload_response_model_1.UploadResponse),
+    __param(0, (0, graphql_1.Args)({ name: 'file', type: () => upload_scalar_1.UploadScalar })),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UsersResolver.prototype, "uploadImage", null);
 exports.UsersResolver = UsersResolver = __decorate([
     (0, graphql_1.Resolver)(() => user_model_1.UserModel),
     __metadata("design:paramtypes", [users_service_1.UsersService])

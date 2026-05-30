@@ -16,11 +16,15 @@ export declare class UsersResolver {
     } & {
         id: string;
     }>;
-    createUser(name: string, email: string, password: string, age: number): Promise<import("mongoose").Document<unknown, {}, import("./schemas/user.schema").User, {}, import("mongoose").DefaultSchemaOptions> & import("./schemas/user.schema").User & {
+    createUser(name: string, email: string, password: string, age: number, profilePhoto?: any): Promise<import("mongoose").Document<unknown, {}, import("./schemas/user.schema").User, {}, import("mongoose").DefaultSchemaOptions> & import("./schemas/user.schema").User & {
         _id: import("mongoose").Types.ObjectId;
     } & {
         __v: number;
     } & {
         id: string;
     }>;
+    uploadImage(file: any): Promise<{
+        url: string;
+    }>;
+    private saveFile;
 }

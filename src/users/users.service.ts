@@ -30,7 +30,7 @@ export class UsersService {
         } catch (error) {
             if (error instanceof ConflictException) {
                 throw error;
-            }
+            }   
 
             throw new InternalServerErrorException('Something went wrong');
         }
@@ -74,13 +74,17 @@ export class UsersService {
         }
     }
 
-    async update(id: string, data: any) {
+    async update(id: string, data: any,  file?: Express.Multer.File) {
         try {
             const updatedUser = await this.userModel.findByIdAndUpdate(id, data, { new: true });
             if (!updatedUser) {
                 throw new NotFoundException('User not found');
             }
-
+            if(file){
+                updatedUser.profilePhoto = file.path;
+                await updatedUser.save();
+            }
+            
             return {
                 message: 'User updated successfully',
                 data: updatedUser,

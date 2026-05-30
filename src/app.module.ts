@@ -5,10 +5,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './users/users.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-
-
+import { UploadScalar } from './graphql/scalars/upload.scalar';
 
 const mongoUri = process.env.MONGO_URI;
+
 if (!mongoUri) {
   throw new Error('Missing required environment variable: MONGO_URI');
 }
@@ -26,7 +26,7 @@ if (!mongoUri) {
     UsersModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, UploadScalar],
 })
 
 export class AppModule {}

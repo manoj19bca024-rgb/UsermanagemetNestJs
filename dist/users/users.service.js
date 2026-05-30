@@ -81,11 +81,15 @@ let UsersService = class UsersService {
             throw new common_1.InternalServerErrorException('Failed to fetch user');
         }
     }
-    async update(id, data) {
+    async update(id, data, file) {
         try {
             const updatedUser = await this.userModel.findByIdAndUpdate(id, data, { new: true });
             if (!updatedUser) {
                 throw new common_1.NotFoundException('User not found');
+            }
+            if (file) {
+                updatedUser.profilePhoto = file.path;
+                await updatedUser.save();
             }
             return {
                 message: 'User updated successfully',

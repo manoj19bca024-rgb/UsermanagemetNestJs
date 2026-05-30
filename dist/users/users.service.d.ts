@@ -34,7 +34,7 @@ export declare class UsersService {
             id: string;
         };
     }>;
-    update(id: string, data: any): Promise<{
+    update(id: string, data: any, file?: Express.Multer.File): Promise<{
         message: string;
         data: import("mongoose").Document<unknown, {}, User, {}, import("mongoose").DefaultSchemaOptions> & User & {
             _id: import("mongoose").Types.ObjectId;
