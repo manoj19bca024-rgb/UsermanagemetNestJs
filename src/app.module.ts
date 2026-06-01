@@ -26,7 +26,7 @@ if (!mongoUri) {
       autoSchemaFile: 'schema.gql',
       sortSchema: true,
       playground: true,
-      path: '/graphql',
+      path: '/graphql' 
     }),
     UsersModule,
   ],
@@ -36,4 +36,4 @@ if (!mongoUri) {
 
 
 
-export class AppModule {}
+export class AppModule { }

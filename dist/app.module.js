@@ -33,7 +33,7 @@ exports.AppModule = AppModule = __decorate([
                 autoSchemaFile: 'schema.gql',
                 sortSchema: true,
                 playground: true,
-                path: '/graphql',
+                path: '/graphql'
             }),
             users_module_1.UsersModule,
         ],

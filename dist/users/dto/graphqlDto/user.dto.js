@@ -13,7 +13,7 @@ exports.DeleteUserDto = exports.UpdateUserDto = exports.CreateUserDto = void 0;
 const graphql_1 = require("@nestjs/graphql");
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
-const upload_scalar_1 = require("../../graphql/scalars/upload.scalar");
+const upload_scalar_1 = require("../../../graphql/scalars/upload.scalar");
 let CreateUserDto = class CreateUserDto {
     name;
     email;
@@ -26,6 +26,7 @@ __decorate([
     (0, graphql_1.Field)(),
     (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.IsString)(),
+    (0, class_transformer_1.Transform)(({ value }) => value?.trim()),
     __metadata("design:type", String)
 ], CreateUserDto.prototype, "name", void 0);
 __decorate([

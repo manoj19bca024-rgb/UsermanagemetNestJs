@@ -77,24 +77,26 @@ let UsersService = class UsersService {
     }
     async update(id, data, file) {
         try {
+            const existingUser = await this.userModel.findById(id);
+            if (!existingUser) {
+                throw new common_1.NotFoundException('User not found');
+            }
+            const updateData = Object.fromEntries(Object.entries(data).filter(([, value]) => value !== undefined));
             if (file) {
-                const existingUser = await this.userModel.findById(id);
-                if (!existingUser) {
-                    throw new common_1.NotFoundException('User not found');
-                }
                 if (existingUser.profilePhoto) {
                     await this.fileStorageService.deleteFile(existingUser.profilePhoto);
                 }
-                data.profilePhoto = await this.fileStorageService.saveFile(file);
+                updateData.profilePhoto = await this.fileStorageService.saveFile(file);
             }
-            const updatedUser = await this.userModel.findByIdAndUpdate(id, data, { new: true });
-            if (!updatedUser) {
-                throw new common_1.NotFoundException('User not found');
-            }
-            return updatedUser;
+            return await this.userModel.findByIdAndUpdate(id, updateData, { new: true });
         }
         catch (err) {
-            throw new common_1.InternalServerErrorException('Failed to update user');
+            console.error('UPDATE ERROR:', err.message);
+            if (err instanceof common_1.NotFoundException)
+                throw err;
+            if (err instanceof common_1.BadRequestException)
+                throw err;
+            throw new common_1.InternalServerErrorException(`Failed to update user: ${err.message}`);
         }
     }
     async remove(id) {

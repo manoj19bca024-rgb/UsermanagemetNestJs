@@ -1,7 +1,7 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UsersService } from './users.service';
 import { UserModel } from './dto/user.model';
-import { CreateUserDto, UpdateUserDto, DeleteUserDto } from './dto/user.dto';
+import { CreateUserDto, UpdateUserDto, DeleteUserDto } from './dto/graphqlDto/user.dto';
 import { UploadResponse } from './dto/upload-response.model';
 import { UploadScalar } from '../graphql/scalars/upload.scalar';
 import { UserInterface } from './interface/user.interface';
@@ -9,7 +9,7 @@ import { UserInterface } from './interface/user.interface';
 
 @Resolver(() => UserModel)
 export class UsersResolver {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Query(() => [UserModel])
   async users() {
@@ -24,7 +24,7 @@ export class UsersResolver {
   }
 
 
-  
+
   @Mutation(() => UserModel)
   async createUser(
     @Args({ name: 'input', type: () => CreateUserDto }) createUserInput: CreateUserDto,
@@ -38,16 +38,16 @@ export class UsersResolver {
 
 
 
-  @Mutation(()=> UserModel)
+  @Mutation(() => UserModel)
   async updateUser(
     @Args({ name: 'input', type: () => UpdateUserDto }) updateUserDto: UpdateUserDto,
-){
+  ) {
     const { id, name, email, password, age, profilePhoto } = updateUserDto;
-    const updateData:  Partial<UserInterface> = {};
-    if(name) updateData.name = name;
-    if(email) updateData.email = email;
-    if(password) updateData.password = password;
-    if(age) updateData.age = age;
+    const updateData: Partial<UserInterface> = {};
+    if (name) updateData.name = name;
+    if (email) updateData.email = email;
+    if (password) updateData.password = password;
+    if (age) updateData.age = age;
     const result = await this.usersService.update(id, updateData, profilePhoto);
     return result;
   }
@@ -75,5 +75,5 @@ export class UsersResolver {
     return { url };
   }
 
-  
+
 }

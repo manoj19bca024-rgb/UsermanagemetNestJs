@@ -7,13 +7,14 @@ import {
   IsString,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { UploadScalar } from '../../graphql/scalars/upload.scalar';
+import { UploadScalar } from '../../../graphql/scalars/upload.scalar';
 
 @InputType()
 export class CreateUserDto {
   @Field()
   @IsNotEmpty()
   @IsString()
+  @Transform(({ value }) => value?.trim()) 
   name!: string;
 
   @Field()

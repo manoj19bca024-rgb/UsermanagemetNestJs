@@ -14,7 +14,7 @@ async function bootstrap() {
         whitelist: true,
         transform: true,
     }));
-    app.use((0, graphqlUploadExpress_mjs_1.default)({ maxFileSize: 10000000, maxFiles: 1 }));
+    app.use('/graphql', (0, graphqlUploadExpress_mjs_1.default)({ maxFileSize: 10000000, maxFiles: 1 }));
     const port = process.env.PORT ?? 3000;
     await app.listen(port, '0.0.0.0');
     console.log(`Server is running on http://localhost:${port}`);

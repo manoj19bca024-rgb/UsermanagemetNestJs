@@ -1,6 +1,6 @@
 import { User } from './schemas/user.schema';
 import { Model } from 'mongoose';
-import { CreateUserDto } from "./dto/user.dto";
+import { CreateUserDto } from "./dto/graphqlDto/user.dto";
 import { FileStorageService, UploadFile } from '../file-storage.service';
 export declare class UsersService {
     private userModel;
@@ -27,13 +27,13 @@ export declare class UsersService {
     } & {
         id: string;
     }>;
-    update(id: string, data: any, file?: UploadFile): Promise<import("mongoose").Document<unknown, {}, User, {}, import("mongoose").DefaultSchemaOptions> & User & {
+    update(id: string, data: any, file?: UploadFile): Promise<(import("mongoose").Document<unknown, {}, User, {}, import("mongoose").DefaultSchemaOptions> & User & {
         _id: import("mongoose").Types.ObjectId;
     } & {
         __v: number;
     } & {
         id: string;
-    }>;
+    }) | null>;
     remove(id: string): Promise<import("mongoose").Document<unknown, {}, User, {}, import("mongoose").DefaultSchemaOptions> & User & {
         _id: import("mongoose").Types.ObjectId;
     } & {
