@@ -2,7 +2,7 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-input CreateUserInput {
+input CreateUserDto {
   age: Int!
   email: String!
   name: String!
@@ -20,9 +20,9 @@ input DeleteUserDto {
 }
 
 type Mutation {
-  createUser(input: CreateUserInput!): UserModel!
+  createUser(input: CreateUserDto!): UserModel!
   deleteUser(input: DeleteUserDto!): Boolean!
-  updateUser(input: UpdateUserInput!): UserModel!
+  updateUser(input: UpdateUserDto!): UserModel!
   uploadImage(file: Upload!): UploadResponse!
 }
 
@@ -31,7 +31,7 @@ type Query {
   users: [UserModel!]!
 }
 
-input UpdateUserInput {
+input UpdateUserDto {
   age: Int
   email: String
   id: ID!

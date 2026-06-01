@@ -13,6 +13,7 @@ const users_service_1 = require("./users.service");
 const mongoose_1 = require("@nestjs/mongoose");
 const user_schema_1 = require("./schemas/user.schema");
 const users_resolver_1 = require("./users.resolver");
+const file_storage_service_1 = require("../file-storage.service");
 let UsersModule = class UsersModule {
 };
 exports.UsersModule = UsersModule;
@@ -25,7 +26,7 @@ exports.UsersModule = UsersModule = __decorate([
                 }])
         ],
         controllers: [users_controller_1.UsersController],
-        providers: [users_service_1.UsersService, users_resolver_1.UsersResolver]
+        providers: [users_service_1.UsersService, users_resolver_1.UsersResolver, file_storage_service_1.FileStorageService]
     })
 ], UsersModule);
 //# sourceMappingURL=users.module.js.map

@@ -1,24 +1,19 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException, HttpException, HttpStatus } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
 import { Model } from 'mongoose';
-import { CreateUserDto } from 'src/dto/create-user.dto';
-import { createWriteStream, existsSync, mkdirSync } from 'fs';
-import { join } from 'path/win32';
-
-interface FileUpload {
-  filename: string;
-  mimetype: string;
-  encoding: string;
-  createReadStream: () => NodeJS.ReadableStream;
-}
+import { CreateUserDto } from "./dto/user.dto";
+import { FileStorageService, UploadFile } from '../file-storage.service';
 
 @Injectable()
 export class UsersService {
 
-    constructor(@InjectModel(User.name) private userModel: Model<User>) { }
+    constructor(
+        @InjectModel(User.name) private userModel: Model<User>,
+        private readonly fileStorageService: FileStorageService,
+    ) { }
 
-    async create(data: CreateUserDto, file?: Express.Multer.File) {
+    async create(data: CreateUserDto, file?: UploadFile) {
         try {
             const existingUser = await this.userModel.findOne({ email: data.email });
             if (existingUser) {
@@ -27,18 +22,19 @@ export class UsersService {
 
             const userData = { ...data };
             if (file) {
-                userData.profilePhoto = file.path;
+                userData.profilePhoto = await this.fileStorageService.saveFile(file);
             }
 
             const user = await this.userModel.create(userData);
-            return {
-                message: 'User created successfully',
-                data: user,
-            };
+            return user
         } catch (error) {
+
             if (error instanceof ConflictException) {
                 throw error;
-            }   
+            }
+            if ( process.env.NODE_ENV === 'development'){
+                throw new InternalServerErrorException(`Failed to create user: ${error}`);
+            }
 
             throw new InternalServerErrorException('Something went wrong');
         }
@@ -47,14 +43,7 @@ export class UsersService {
     async findAll() {
         try {
             const users = await this.userModel.find();
-            if (!users || users.length === 0) {
-                throw new NotFoundException('No users found');
-            }
-
-            return {
-                message: 'Users fetched successfully',
-                data: users,
-            };
+            return users;
         } catch (error) {
             if (error instanceof NotFoundException) {
                 throw error;
@@ -63,6 +52,8 @@ export class UsersService {
         }
     }
 
+    
+
     async findOne(id: string) {
         try {
             const user = await this.userModel.findById(id);
@@ -70,10 +61,7 @@ export class UsersService {
                 throw new NotFoundException('User not found');
             }
 
-            return {
-                message: 'User found successfully',
-                data: user,
-            };
+            return user;
         } catch (error) {
             if (error instanceof NotFoundException) {
                 throw error;
@@ -82,25 +70,34 @@ export class UsersService {
         }
     }
 
-    async update(id: string, data: any,  file?: Express.Multer.File) {
+
+
+    async update(id: string, data: any, file?: UploadFile) {
         try {
+            if (file) {
+                const existingUser = await this.userModel.findById(id);
+                if (!existingUser) {
+                    throw new NotFoundException('User not found');
+                }
+
+                if (existingUser.profilePhoto) {
+                    await this.fileStorageService.deleteFile(existingUser.profilePhoto);
+                }
+
+                data.profilePhoto = await this.fileStorageService.saveFile(file);
+            }
+
             const updatedUser = await this.userModel.findByIdAndUpdate(id, data, { new: true });
             if (!updatedUser) {
                 throw new NotFoundException('User not found');
             }
-            if(file){
-                updatedUser.profilePhoto = file.path;
-                await updatedUser.save();
-            }
-            
-            return {
-                message: 'User updated successfully',
-                data: updatedUser,
-            };
+
+            return updatedUser;
         } catch (err) {
             throw new InternalServerErrorException('Failed to update user');
         }
     }
+
 
     async remove(id: string) {
         try {
@@ -109,34 +106,14 @@ export class UsersService {
                 throw new NotFoundException('User not found');
             }
 
-            return {
-                message: 'User deleted successfully',
-                data: removedUser,
-            };
+            return removedUser;
         } catch (err) {
             throw new InternalServerErrorException('Failed to delete user');
         }
     }
 
- async saveFile(file: FileUpload): Promise<string> {
-
-    const uploadDir = join(process.cwd(), 'uploads', 'profiles');
-    if (!existsSync(uploadDir)) {
-      mkdirSync(uploadDir, { recursive: true });
+    async saveFile(file: UploadFile): Promise<string> {
+        return this.fileStorageService.saveFile(file);
     }
-    const filename = `${Date.now()}-${file.filename}`;
-    const filePath = join(uploadDir, filename);
-
-    await new Promise<void>((resolve, reject) => {
-      file.createReadStream()
-        .pipe(createWriteStream(filePath))
-        .on('finish', resolve)
-        .on('error', reject);
-    });
-
-    return filePath;
-    }
-   
-
 
 }

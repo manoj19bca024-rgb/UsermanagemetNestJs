@@ -1,4 +1,4 @@
-export declare class CreateUserDto {
+export interface UserInterface {
     name: string;
     email: string;
     password: string;

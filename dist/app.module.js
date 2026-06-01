@@ -15,6 +15,8 @@ const users_module_1 = require("./users/users.module");
 const graphql_1 = require("@nestjs/graphql");
 const apollo_1 = require("@nestjs/apollo");
 const upload_scalar_1 = require("./graphql/scalars/upload.scalar");
+const dotenv_1 = require("dotenv");
+(0, dotenv_1.config)();
 const mongoUri = process.env.MONGO_URI;
 if (!mongoUri) {
     throw new Error('Missing required environment variable: MONGO_URI');

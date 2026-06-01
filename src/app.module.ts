@@ -6,8 +6,13 @@ import { UsersModule } from './users/users.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { UploadScalar } from './graphql/scalars/upload.scalar';
+import { config } from 'dotenv';
+
+
+config();
 
 const mongoUri = process.env.MONGO_URI;
+
 
 if (!mongoUri) {
   throw new Error('Missing required environment variable: MONGO_URI');
@@ -28,5 +33,7 @@ if (!mongoUri) {
   controllers: [AppController],
   providers: [AppService, UploadScalar],
 })
+
+
 
 export class AppModule {}

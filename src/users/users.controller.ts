@@ -1,10 +1,8 @@
-import { Controller , Get, Post, Put, Delete, Param, Body, Query, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller , Get, Post, Put, Delete, Param, Body, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { memoryStorage } from 'multer';
 import { UsersService } from './users.service';
-import { CreateUserDto} from '../dto/create-user.dto';
-import { UpdateUserDto} from '../dto/update-user.dto';
+import { CreateUserDto, UpdateUserDto } from './dto/user.dto'
 import * as fs from 'fs';
 
 
@@ -14,13 +12,7 @@ export class UsersController {
 
     @Post()
     @UseInterceptors(FileInterceptor('profilePhoto', {
-        storage: diskStorage({
-            destination: './uploads/profiles',
-            filename: (req, file, cb) => {
-                const randomName = Array(32).fill(null).map(() => Math.round(Math.random() * 16).toString(16)).join('');
-                cb(null, `${randomName}${extname(file.originalname)}`);
-            },
-        }),
+        storage: memoryStorage(),
         fileFilter: (req, file, cb) => {
             if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
                 return cb(new Error('Only image files are allowed!'), false);
@@ -28,6 +20,7 @@ export class UsersController {
             cb(null, true);
         },
     }))
+    
     async create(@Body() data: CreateUserDto, @UploadedFile() file?: Express.Multer.File) {
         return this.usersService.create(data, file);
     }
@@ -46,7 +39,7 @@ export class UsersController {
     async update(@Param('id') id: string, @Body() data: UpdateUserDto) {
         if (data.profilePhoto) {
             const result = await this.usersService.findOne(id);
-            const user = result?.data;
+            const user = result
 
             if (user?.profilePhoto && fs.existsSync(user.profilePhoto)) {
                 fs.unlinkSync(user.profilePhoto);
@@ -55,6 +48,8 @@ export class UsersController {
 
         return this.usersService.update(id, data);
     }
+
+
 
     @Delete(':id')
     async remove(@Param('id') id: string) {

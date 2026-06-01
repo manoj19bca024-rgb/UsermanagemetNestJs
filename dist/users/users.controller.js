@@ -49,10 +49,8 @@ exports.UsersController = void 0;
 const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
 const multer_1 = require("multer");
-const path_1 = require("path");
 const users_service_1 = require("./users.service");
-const create_user_dto_1 = require("../dto/create-user.dto");
-const update_user_dto_1 = require("../dto/update-user.dto");
+const user_dto_1 = require("./dto/user.dto");
 const fs = __importStar(require("fs"));
 let UsersController = class UsersController {
     usersService;
@@ -71,7 +69,7 @@ let UsersController = class UsersController {
     async update(id, data) {
         if (data.profilePhoto) {
             const result = await this.usersService.findOne(id);
-            const user = result?.data;
+            const user = result;
             if (user?.profilePhoto && fs.existsSync(user.profilePhoto)) {
                 fs.unlinkSync(user.profilePhoto);
             }
@@ -86,13 +84,7 @@ exports.UsersController = UsersController;
 __decorate([
     (0, common_1.Post)(),
     (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('profilePhoto', {
-        storage: (0, multer_1.diskStorage)({
-            destination: './uploads/profiles',
-            filename: (req, file, cb) => {
-                const randomName = Array(32).fill(null).map(() => Math.round(Math.random() * 16).toString(16)).join('');
-                cb(null, `${randomName}${(0, path_1.extname)(file.originalname)}`);
-            },
-        }),
+        storage: (0, multer_1.memoryStorage)(),
         fileFilter: (req, file, cb) => {
             if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
                 return cb(new Error('Only image files are allowed!'), false);
@@ -103,7 +95,7 @@ __decorate([
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.UploadedFile)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_user_dto_1.CreateUserDto, Object]),
+    __metadata("design:paramtypes", [user_dto_1.CreateUserDto, Object]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "create", null);
 __decorate([
@@ -124,7 +116,7 @@ __decorate([
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_user_dto_1.UpdateUserDto]),
+    __metadata("design:paramtypes", [String, user_dto_1.UpdateUserDto]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "update", null);
 __decorate([

@@ -1,15 +1,10 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
-import { createWriteStream, existsSync, mkdirSync } from 'fs';
-import { join } from 'path';
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UsersService } from './users.service';
 import { UserModel } from './dto/user.model';
-import { CreateUserDto } from '../dto/create-user.dto';
-import { CreateUserInput } from './dto/create-user.input';
-import { DeleteUserDto } from '../dto/delete-user.dto';
-import { UpdateUserInput } from './dto/update-user.input';
+import { CreateUserDto, UpdateUserDto, DeleteUserDto } from './dto/user.dto';
 import { UploadResponse } from './dto/upload-response.model';
 import { UploadScalar } from '../graphql/scalars/upload.scalar';
-
+import { UserInterface } from './interface/user.interface';
 
 
 @Resolver(() => UserModel)
@@ -19,48 +14,45 @@ export class UsersResolver {
   @Query(() => [UserModel])
   async users() {
     const result = await this.usersService.findAll();
-    return result.data;
+    return result;
   }
 
   @Query(() => UserModel)
   async user(@Args('id') id: string) {
     const result = await this.usersService.findOne(id);
-    return result.data;
+    return result;
   }
 
+
+  
   @Mutation(() => UserModel)
   async createUser(
-    @Args({ name: 'input', type: () => CreateUserInput }) createUserInput: CreateUserInput,
+    @Args({ name: 'input', type: () => CreateUserDto }) createUserInput: CreateUserDto,
   ) {
     const { name, email, password, age, profilePhoto } = createUserInput;
     const dto: CreateUserDto = { name, email, password, age } as CreateUserDto;
 
-    if (profilePhoto) {
-      const upload = await (typeof profilePhoto.then === 'function' ? profilePhoto : profilePhoto);
-      dto.profilePhoto = await this.usersService.saveFile(upload);
-    }
-
-    const result = await this.usersService.create(dto);
-    return result.data;
+    const result = await this.usersService.create(dto, profilePhoto);
+    return result;
   }
+
+
 
   @Mutation(()=> UserModel)
   async updateUser(
-    @Args({ name: 'input', type: () => UpdateUserInput }) updateUserInput: UpdateUserInput,
-  ){
-    const { id, name, email, password, age, profilePhoto } = updateUserInput;
-    const updateData: any = {};
+    @Args({ name: 'input', type: () => UpdateUserDto }) updateUserDto: UpdateUserDto,
+){
+    const { id, name, email, password, age, profilePhoto } = updateUserDto;
+    const updateData:  Partial<UserInterface> = {};
     if(name) updateData.name = name;
     if(email) updateData.email = email;
     if(password) updateData.password = password;
     if(age) updateData.age = age;
-    if (profilePhoto) {
-      const upload = await (typeof profilePhoto.then === 'function' ? profilePhoto : profilePhoto);
-      updateData.profilePhoto = await this.usersService.saveFile(upload);
-    }
-    const result = await this.usersService.update(id, updateData);
-    return result.data;
+    const result = await this.usersService.update(id, updateData, profilePhoto);
+    return result;
   }
+
+
 
   @Mutation(() => Boolean)
   async deleteUser(
@@ -70,7 +62,7 @@ export class UsersResolver {
     return true;
   }
 
-  
+
 
 
   @Mutation(() => UploadResponse)

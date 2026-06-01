@@ -17,12 +17,13 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const user_schema_1 = require("./schemas/user.schema");
 const mongoose_2 = require("mongoose");
-const fs_1 = require("fs");
-const win32_1 = require("path/win32");
+const file_storage_service_1 = require("../file-storage.service");
 let UsersService = class UsersService {
     userModel;
-    constructor(userModel) {
+    fileStorageService;
+    constructor(userModel, fileStorageService) {
         this.userModel = userModel;
+        this.fileStorageService = fileStorageService;
     }
     async create(data, file) {
         try {
@@ -32,17 +33,17 @@ let UsersService = class UsersService {
             }
             const userData = { ...data };
             if (file) {
-                userData.profilePhoto = file.path;
+                userData.profilePhoto = await this.fileStorageService.saveFile(file);
             }
             const user = await this.userModel.create(userData);
-            return {
-                message: 'User created successfully',
-                data: user,
-            };
+            return user;
         }
         catch (error) {
             if (error instanceof common_1.ConflictException) {
                 throw error;
+            }
+            if (process.env.NODE_ENV === 'development') {
+                throw new common_1.InternalServerErrorException(`Failed to create user: ${error}`);
             }
             throw new common_1.InternalServerErrorException('Something went wrong');
         }
@@ -50,13 +51,7 @@ let UsersService = class UsersService {
     async findAll() {
         try {
             const users = await this.userModel.find();
-            if (!users || users.length === 0) {
-                throw new common_1.NotFoundException('No users found');
-            }
-            return {
-                message: 'Users fetched successfully',
-                data: users,
-            };
+            return users;
         }
         catch (error) {
             if (error instanceof common_1.NotFoundException) {
@@ -71,10 +66,7 @@ let UsersService = class UsersService {
             if (!user) {
                 throw new common_1.NotFoundException('User not found');
             }
-            return {
-                message: 'User found successfully',
-                data: user,
-            };
+            return user;
         }
         catch (error) {
             if (error instanceof common_1.NotFoundException) {
@@ -85,18 +77,21 @@ let UsersService = class UsersService {
     }
     async update(id, data, file) {
         try {
+            if (file) {
+                const existingUser = await this.userModel.findById(id);
+                if (!existingUser) {
+                    throw new common_1.NotFoundException('User not found');
+                }
+                if (existingUser.profilePhoto) {
+                    await this.fileStorageService.deleteFile(existingUser.profilePhoto);
+                }
+                data.profilePhoto = await this.fileStorageService.saveFile(file);
+            }
             const updatedUser = await this.userModel.findByIdAndUpdate(id, data, { new: true });
             if (!updatedUser) {
                 throw new common_1.NotFoundException('User not found');
             }
-            if (file) {
-                updatedUser.profilePhoto = file.path;
-                await updatedUser.save();
-            }
-            return {
-                message: 'User updated successfully',
-                data: updatedUser,
-            };
+            return updatedUser;
         }
         catch (err) {
             throw new common_1.InternalServerErrorException('Failed to update user');
@@ -108,35 +103,21 @@ let UsersService = class UsersService {
             if (!removedUser) {
                 throw new common_1.NotFoundException('User not found');
             }
-            return {
-                message: 'User deleted successfully',
-                data: removedUser,
-            };
+            return removedUser;
         }
         catch (err) {
             throw new common_1.InternalServerErrorException('Failed to delete user');
         }
     }
     async saveFile(file) {
-        const uploadDir = (0, win32_1.join)(process.cwd(), 'uploads', 'profiles');
-        if (!(0, fs_1.existsSync)(uploadDir)) {
-            (0, fs_1.mkdirSync)(uploadDir, { recursive: true });
-        }
-        const filename = `${Date.now()}-${file.filename}`;
-        const filePath = (0, win32_1.join)(uploadDir, filename);
-        await new Promise((resolve, reject) => {
-            file.createReadStream()
-                .pipe((0, fs_1.createWriteStream)(filePath))
-                .on('finish', resolve)
-                .on('error', reject);
-        });
-        return filePath;
+        return this.fileStorageService.saveFile(file);
     }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __metadata("design:paramtypes", [mongoose_2.Model,
+        file_storage_service_1.FileStorageService])
 ], UsersService);
 //# sourceMappingURL=users.service.js.map
